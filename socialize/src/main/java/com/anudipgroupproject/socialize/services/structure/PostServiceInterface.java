@@ -4,11 +4,11 @@ import java.util.List;
 
 import com.anudipgroupproject.socialize.models.Post;
 
-public class PostServiceInterface {
-	public User create(User student);
-	public User update(Long id, User obj);
-	public User get(Long id);
-	public User get(String usernname);
+public interface PostServiceInterface {
+	public Post create(Post obj);
+	public Post update(Long id, Post obj);
+	public Post get(Long id);
+//	public List<Post> all(String usernname);
 	public List<Post> all();
 	public void delete(Long id);
 }

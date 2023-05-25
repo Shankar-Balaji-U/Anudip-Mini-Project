@@ -1,6 +1,7 @@
 package com.anudipgroupproject.socialize.models;
 
 import java.util.Date;
+import java.util.List;
 
 import com.anudipgroupproject.socialize.exceptions.NotAnEmailException;
 import com.anudipgroupproject.socialize.exceptions.PasswordMismatchException;
@@ -11,6 +12,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -65,6 +67,9 @@ public class User {
 	
 	@Column(name="is_active")
 	private boolean is_active;
+	
+    @OneToMany(mappedBy="user")
+    private List<Post> posts;
 	
 	// automatically set the date which object is save on create
 	@PrePersist
@@ -180,5 +185,9 @@ public class User {
 
 	public void setIsActive(boolean is_active) {
 		this.is_active = is_active;
+	}
+	
+	public List<Post> getPosts() {
+		return this.posts;
 	}
 }
