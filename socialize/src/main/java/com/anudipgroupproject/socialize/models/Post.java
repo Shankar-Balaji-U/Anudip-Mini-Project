@@ -1,6 +1,11 @@
 package com.anudipgroupproject.socialize.models;
 
+import java.io.IOException;
 import java.util.Date;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 //import org.hibernate.annotations.OnDelete;
 //import org.hibernate.annotations.OnDeleteAction;
@@ -16,6 +21,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import com.anudipgroupproject.socialize.utils.MediaManager;
+
 @Entity
 @Table(name = "posts")
 public class Post {
@@ -25,13 +32,14 @@ public class Post {
 
 	@ManyToOne(fetch=FetchType.LAZY)  //	@OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name="user", nullable=false, referencedColumnName="id")
+	@JsonIgnore
     private User user;
 	
 	@Column(name="caption")
 	private String caption;
 	
-	@Column(name="image", nullable=false, columnDefinition="LONGBLOB")
-	private byte[] image;
+	@Column(name="image", nullable=false)
+	private String image;
 	
 	@Column(name="created_on")
 	private Date created_on;
@@ -42,13 +50,16 @@ public class Post {
 		created_on = new Date();
     }
 	
-	public Post() {
+	public Post() { }
+	
+	public Post(String caption, MultipartFile image) {
+		this.setCaption(caption);
+		this.setImage(image);
 	}
 	
-	public Post(String caption, byte[] image, User user) {
-		this.caption = caption;
-		this.image = image;
-		this.user = user;
+	public Post(String caption, MultipartFile image, User user) {
+		this(caption, image);
+		this.setUser(user);
 	}
 	
 	public long getId() {
@@ -71,12 +82,18 @@ public class Post {
 		this.caption = caption;
 	}
 
-	public byte[] getImage() {
+	public String getImage() {
 		return image;
 	}
 
-	public void setImage(byte[] image) {
-		this.image = image;
+	public void setImage(MultipartFile image) {
+		String subfolder = this.getUser().getUsername();
+		try {
+			MediaManager.save(image, subfolder, "post_images");
+		} catch (IOException e) {
+			
+		}
+//		this.image = image.ge;
 	}
 
 	public Date getCreated_on() {

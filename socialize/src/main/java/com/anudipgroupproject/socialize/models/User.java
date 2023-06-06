@@ -3,9 +3,9 @@ package com.anudipgroupproject.socialize.models;
 import java.util.Date;
 import java.util.List;
 
-import com.anudipgroupproject.socialize.exceptions.NotAnEmailException;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.anudipgroupproject.socialize.exceptions.PasswordMismatchException;
-import com.anudipgroupproject.socialize.validators.EmailValidator;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,35 +17,23 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 
 
 @Entity
 @Table(name = "users")
 public class User {
-	/** 
-	 * id: Auto 
-	 * image: DEFAULT blank
-	 * email_id: DEFAULT blank
-	 * username: unique
-	 * displayname: DEFAULT username
-	 * password: ALLOWED CHAR(100)
-	 * created_on: DEFAULT NOW()
-	 * last_login: DEFAULT blank
-	 * is_active: DEFAULT TRUE
-	 * */
-	
-
 	@Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
-
+	
 	@Column(name="username", unique=true, nullable=false)
 	private String username;
 	
 	@Column(name="displayname")
 	private String displayname;
 	
-	@Column(name="password", length=100, nullable=false)
+	@Column(name="password", length=25, nullable=false)
 	private String password;
 	
 	@Column(name="mobile_no", length=20)
@@ -53,10 +41,13 @@ public class User {
 
 	@Column(name="email_id")
 	private String email_id;
-
-	@Column(name="profile_image", columnDefinition="BLOB")
-	private byte[] image;
 	
+	@Column(name="profile_image")
+	private String image;
+	
+	@Transient
+	private MultipartFile image_file;
+
 	@Temporal(TemporalType.TIMESTAMP)
     @Column(name="created_on")
 	private Date created_on;
@@ -65,45 +56,37 @@ public class User {
     @Column(name="last_login")
 	private Date last_login;
 	
-	@Column(name="is_active")
+	/**
+	 * If the user is active in their session, this value will be set to TRUE.
+	 * This can be achieved using AJAX. A signal is passed from the client to the server to update this value.
+	 */
+	@Column(name="is_active", columnDefinition="BIT(1) DEFAULT FALSE")
 	private boolean is_active;
+	
+	/**
+	 * Indicates whether the user is deleted or not.
+	 * By default, the value is set to FALSE, indicating that the user is not deleted.
+	 */
+	@Column(name="is_deleted", columnDefinition="BIT(1) DEFAULT FALSE")
+	private boolean is_deleted;
 	
     @OneToMany(mappedBy="user")
     private List<Post> posts;
 	
-	// automatically set the date which object is save on create
 	@PrePersist
     protected void onCreate() {
-		this.displayname = this.username;
-		this.created_on = new Date();
-		this.is_active = true;
-    }
+		if (this.getDisplayname() == null) {
+			this.setDisplayname(this.getUsername());
+		}
+	}
 	
 	// Default constructor
     public User() {
+    	// Automatically set the date when the object is saved on create
+		this.created_on = new Date();
     }
-    
-	public User(String username,  String newPassword, String confirmPassword) {
-		super();
-		this.setUsername(username);
-		this.setPassword(newPassword, confirmPassword);
-	}
 	
-	public User(String username, String alicename, String newPassword, String confirmPassword, byte[] image, String mobile_no) {
-		this(username, newPassword, confirmPassword);
-		this.setProfileImage(image);
-		this.displayname = alicename;
-		this.mobile_no = mobile_no;
-	}
-	
-	public User(String displayname, String username, String newPassword, String confirmPassword, String mobile_no, String email_id, byte[] image) {
-		this(username, newPassword, confirmPassword);
-		this.setProfileImage(image);
-		this.displayname = displayname;
-		this.mobile_no = mobile_no;
-		this.email_id = email_id;
-	}
-	
+	// Getters and setters for the class properties
 	public Long getId() {
 		return id;
 	}
@@ -138,33 +121,63 @@ public class User {
 		this.password = password;
 	}
 	
-	public byte[] getProfileImage() {
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public MultipartFile getProfileImageFile() {
+//		TODO: String to File object
+		if (this.image != null) {
+			return this.image_file;
+		}
+		return null;
+	}
+	
+	public void setProfileImageFile(MultipartFile file) {
+		this.image_file = file;
+	}
+	
+	public void saveProfileImageFile() {
+		if (this.image != null) {
+			
+		}
+	}
+	
+	public String getProfileImagePath() {
 		return image;
 	}
 
-	public void setProfileImage(byte[] image) {
-		this.image = image;
-	}
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public String getEmailId() {
 		return email_id;
 	}
 
+	public void setEmailId(String email_id) {
+		this.email_id = email_id;
+		// Validate email format if needed
+	}
+	
 	public String getMobileNo() {
 		return mobile_no;
 	}
 
 	public void setMobileNo(String mobile_no) {
 		this.mobile_no = mobile_no;
-	}
-	
-	public void setEmailId(String email_id) {
-		try {
-			new EmailValidator(email_id);
-            this.email_id = email_id;
-		} catch (NotAnEmailException e) {
-            e.printStackTrace();
-		}
 	}
 
 	public Date getCreatedOn() {
@@ -187,7 +200,20 @@ public class User {
 		this.is_active = is_active;
 	}
 	
+	public boolean getIsDelete() {
+		return is_deleted;
+	}
+	
+	public void setIsDelete(boolean is_deleted) {
+		this.is_deleted = is_deleted;
+	}
+	
 	public List<Post> getPosts() {
 		return this.posts;
 	}
+	
+	@Override
+    public String toString() {
+		return String.format("User(id=%s, username=%s, created_on=%s)", id, username, created_on);
+    }
 }
