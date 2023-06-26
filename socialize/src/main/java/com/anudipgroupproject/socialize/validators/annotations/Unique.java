@@ -6,19 +6,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.anudipgroupproject.socialize.validators.UniqueUsernameValidator;
+import com.anudipgroupproject.socialize.validators.FieldValueExists;
+import com.anudipgroupproject.socialize.validators.UniqueValidator;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 @Documented
-@Constraint(validatedBy={UniqueUsernameValidator.class})
+@Constraint(validatedBy={UniqueValidator.class})
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UniqueUsername {
+public @interface Unique {
 	public String message() default "This value is already exist.";
 	
 	Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+    
+    Class<? extends FieldValueExists> service();
+    
+    String serviceQualifier() default "";
+    
+    String fieldName();
 }

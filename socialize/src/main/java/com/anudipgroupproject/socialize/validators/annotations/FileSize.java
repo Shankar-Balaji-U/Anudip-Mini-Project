@@ -9,9 +9,10 @@ import java.lang.annotation.Target;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import com.anudipgroupproject.socialize.validators.FileSizeValidator;
+import com.anudipgroupproject.socialize.validators.MultipartFileSizeValidator;
 
 @Documented
-@Constraint(validatedBy={FileSizeValidator.class})
+@Constraint(validatedBy={FileSizeValidator.class, MultipartFileSizeValidator.class})
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FileSize {

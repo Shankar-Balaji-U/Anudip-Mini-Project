@@ -1,13 +1,13 @@
 package com.anudipgroupproject.socialize.validators;
 
-import java.io.File;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.anudipgroupproject.socialize.validators.annotations.FileSize;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class FileSizeValidator implements ConstraintValidator<FileSize, File> {
+public class MultipartFileSizeValidator implements ConstraintValidator<FileSize, MultipartFile> {
 
 	private long minSize;
 	private long maxSize;
@@ -19,12 +19,12 @@ public class FileSizeValidator implements ConstraintValidator<FileSize, File> {
 	}
 
 	@Override
-	public boolean isValid(File file, ConstraintValidatorContext context) {
-		if (file == null || file.exists()) {
+	public boolean isValid(MultipartFile file, ConstraintValidatorContext context) {
+		if (file.isEmpty()) {
 			return true; // Empty file is considered valid
 		}
 		
-		boolean condition = minSize <= file.length() && file.length() <= maxSize;
+		boolean condition = minSize <= file.getSize() && file.getSize() <= maxSize;
 		
 		return condition;
 	}
