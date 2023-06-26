@@ -1,11 +1,14 @@
 package com.anudipgroupproject.socialize.models;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.web.multipart.MultipartFile;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
 
 import com.anudipgroupproject.socialize.exceptions.PasswordMismatchException;
+import com.anudipgroupproject.socialize.forms.UserForm;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +20,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.persistence.Transient;
+
+import com.anudipgroupproject.socialize.models.fields.MediaFile;
 
 
 @Entity
@@ -42,11 +46,9 @@ public class User {
 	@Column(name="email_id")
 	private String email_id;
 	
+	@Type(value=MediaFile.class, parameters={ @Parameter(name="folderName", value="profile_image") })
 	@Column(name="profile_image")
-	private String image;
-	
-	@Transient
-	private MultipartFile image_file;
+	private File image;
 
 	@Temporal(TemporalType.TIMESTAMP)
     @Column(name="created_on")
@@ -121,47 +123,13 @@ public class User {
 		this.password = password;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public MultipartFile getProfileImageFile() {
-//		TODO: String to File object
-		if (this.image != null) {
-			return this.image_file;
-		}
-		return null;
+	public File getImage() {
+		return this.image;
 	}
 	
-	public void setProfileImageFile(MultipartFile file) {
-		this.image_file = file;
+	public void setImage(File image) {
+		this.image = image;
 	}
-	
-	public void saveProfileImageFile() {
-		if (this.image != null) {
-			
-		}
-	}
-	
-	public String getProfileImagePath() {
-		return image;
-	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	public String getEmailId() {
 		return email_id;
@@ -169,7 +137,6 @@ public class User {
 
 	public void setEmailId(String email_id) {
 		this.email_id = email_id;
-		// Validate email format if needed
 	}
 	
 	public String getMobileNo() {
@@ -216,4 +183,22 @@ public class User {
     public String toString() {
 		return String.format("User(id=%s, username=%s, created_on=%s)", id, username, created_on);
     }
+	
+	public void copy(User user) {
+		if (user.getUsername() != null) this.setUsername(user.getUsername());
+		if (user.getDisplayname() != null) this.setDisplayname(user.getDisplayname());
+		if (user.getMobileNo() != null) this.setMobileNo(user.getMobileNo());
+		if (user.getEmailId() != null) this.setEmailId(user.getEmailId());
+		if (user.getImage() != null) this.setImage(user.getImage());
+	}
+	
+	public UserForm getForm() {
+		UserForm form = new UserForm();
+		form.setUsername(this.getUsername());
+		form.setDisplayname(this.getDisplayname());
+		form.setMobileNo(this.getMobileNo());
+		form.setEmailId(this.getEmailId());
+//		form.setImage(this.getImage())
+		return form;
+	}
 }

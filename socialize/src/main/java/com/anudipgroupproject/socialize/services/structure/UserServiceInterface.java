@@ -7,8 +7,9 @@ import com.anudipgroupproject.socialize.models.User;
 public interface UserServiceInterface {
 	public User create(User obj);
 	public User update(Long id, User obj);
+	public User updateActiveStatus(Long id, boolean is_active);
 	public User get(Long id);
-	public User get(String usernname);
+	public User get(String username);
 	public List<User> all();
-	public void delete(Long id);
+	public User delete(Long id);
 }

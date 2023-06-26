@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +36,7 @@ public class PostController {
 		this.userService = userService;
 		this.postService = postService;
 	}
-
+	
 	@PostMapping(value="/{username}/p/new/", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> createPost(
 			@RequestParam("caption") String caption, 
@@ -48,17 +49,21 @@ public class PostController {
 				// TODO: remaind the user to upload the file 
 			}
 		} catch (Exception e) {
-			
+			// do nothing
 		}
 		
 		User user = this.userService.get(username);
-		Post obj = new Post(caption, imageFile.getBytes(), user);
+		Post obj = new Post(caption, imageFile, user);
 		Post post = this.postService.create(obj);
 		return new ResponseEntity<String>(post.toString(), HttpStatus.OK);
 	}
-		
+	
 	@PutMapping(value="/{username}/p/edit/{id}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Post> updatePost(@PathVariable String username, @PathVariable Long id) {
+	public ResponseEntity<Post> updatePost(
+			@PathVariable Long id,
+			@RequestParam("caption") String caption, 
+			@RequestParam("image") MultipartFile imageFile,
+			@PathVariable String username) throws IOException {
 		User user = this.userService.get(username);
 		List<Post> posts = user.getPosts();
 		Post userPost = null;
@@ -69,21 +74,26 @@ public class PostController {
 				break;
 			}
 		}
-		if (userPost == null) {
-			throw new ResourceNotFoundException("Post", "id", String.valueOf(id));
+		if (userPost != null) {
+			Post post = this.postService.update(id, new Post(caption, imageFile));
+			return new ResponseEntity<Post>(post, HttpStatus.OK);
+		} else {
+			throw new ResourceNotFoundException("Post", "id", id);
 		}
-		return new ResponseEntity<Post>(userPost, HttpStatus.OK);
 	}
+	
 	@GetMapping("/{username}/p/all")
 	public ResponseEntity<List<Post>> getAllPostByUsername(@PathVariable String username) {
 		User user = this.userService.get(username);
-		List<Post> posts = user.getPosts();
-		return new ResponseEntity<List<Post>>(posts, HttpStatus.OK);
+		System.out.println();
+//		List<Post> posts = user.getPosts(); //user.getPosts();
+		return new ResponseEntity<List<Post>>(user.getPosts(), HttpStatus.OK);
 	}
 	
-	@GetMapping("/p/{id}")
-	public ResponseEntity<Post> getPostByUsername(@PathVariable Long id) {
-		Post post = this.postService.get(id);
-		return new ResponseEntity<Post>(post, HttpStatus.OK);
+	@DeleteMapping("/p/delete/{id}")
+	public ResponseEntity<String> getPostByUsername(@PathVariable Long id) {
+		this.postService.delete(id);
+		return new ResponseEntity<String>("Object is deleted", HttpStatus.OK);
 	}
+	
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.anudipgroupproject.socialize.exceptions.ResourceNotFoundException;
+import com.anudipgroupproject.socialize.exceptions.RowDeletedException;
 import com.anudipgroupproject.socialize.models.User;
 import com.anudipgroupproject.socialize.repositories.UserRepository;
 import com.anudipgroupproject.socialize.services.structure.UserServiceInterface;
@@ -20,37 +21,61 @@ public class UserService implements UserServiceInterface {
 	}
 	
 	@Override
-	public User create(User obj) {
-		return this.objects.save(obj);
+	public User create(User createUser) {
+		createUser.saveImageFile();
+		return this.objects.save(createUser);
 	}
 	
 	@Override
-	public User update(Long id, User obj) {
+	public User update(Long id, User updateUser) {
 		// we need to check whether Student with given id is exist in DB or not
-    	User existingObj = this.get(id);
-    	existingObj.setUsername(obj.getUsername());
-    	existingObj.setDisplayname(obj.getDisplayname());
-    	// existingObj.setRawPassword(obj.getPassword());
-    	existingObj.setPassword(obj.getPassword());
-    	existingObj.setProfileImage(obj.getProfileImage());
-		existingObj.setMobileNo(obj.getMobileNo());
-		existingObj.setMobileNo(obj.getMobileNo());
-		existingObj.setEmailId(obj.getEmailId());
-		existingObj.setIsActive(obj.getIsActive());
+    	User existingUser = this.get(id);
+    	
+    	// if the requested serialized objec
+		if (updateUser.getUsername() != null) {
+			existingUser.setUsername(updateUser.getUsername());
+		}
+		
+		if (updateUser.getDisplayname() != null) {
+			existingUser.setDisplayname(updateUser.getDisplayname());
+		}
+		
+		if (updateUser.getPassword() != null) {
+		    existingUser.setPassword(updateUser.getPassword());
+		}
+		
+		if (updateUser.getImage() != null) {
+		    existingUser.setTempImageFile(updateUser.getTempImageFile());
+		    existingUser.saveImageFile();
+		}
+
+		if (updateUser.getMobileNo() != null) {
+		    existingUser.setMobileNo(updateUser.getMobileNo());
+		}
+		
+		if (updateUser.getEmailId() != null) {
+		    existingUser.setEmailId(updateUser.getEmailId());
+		}
 		
 		// save updated student to DB
-		this.objects.save(existingObj);
-		return existingObj;
+		return this.objects.save(existingUser);
+	}
+	
+	@Override
+	public User updateActiveStatus(Long id, boolean is_active) {
+		User existingUser = this.get(id);
+		existingUser.setIsActive(is_active);
+		return this.objects.save(existingUser);
 	}
 	
 	@Override
 	public User get(Long id) {
-		return objects.findById(id).orElseThrow(() ->  new ResourceNotFoundException("User", "id", id));
+		return this.objects.findById(id).orElseThrow(() ->  new ResourceNotFoundException("User", "id", id));
 	}
 	
 	@Override
 	public User get(String username) {
-		return objects.findByUsername(username).orElseThrow(() ->  new ResourceNotFoundException("User", "username", username));
+		return this.objects.findByUsername(username).orElseThrow(() ->  new ResourceNotFoundException("User", "username", username));
 	}
 	
 	@Override
@@ -59,9 +84,13 @@ public class UserService implements UserServiceInterface {
 	}
 	
 	@Override
-	public void delete(Long id) {
+	public User delete(Long id) {
 		// This will return a object or else it raise a exception
-    	this.get(id);
-    	this.objects.deleteById(id);
+    	User user = this.get(id);
+    	if (user.getIsDelete()) {
+    		throw new RowDeletedException("User is already deleted");
+    	}
+    	user.setIsDelete(true);
+    	return this.objects.save(user);
 	}
 }

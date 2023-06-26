@@ -1,11 +1,8 @@
 package com.anudipgroupproject.socialize.forms;
 
-import java.io.IOException;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import com.anudipgroupproject.socialize.models.User;
-import com.anudipgroupproject.socialize.utils.MediaManager;
 import com.anudipgroupproject.socialize.validators.annotations.FileSize;
 import com.anudipgroupproject.socialize.validators.annotations.UniqueUsername;
 
@@ -99,14 +96,7 @@ public class UserForm {
 		}
 		
 		if (this.getImage() != null) {
-			String subfolder = this.getUsername();
-			try {
-				MediaManager.save(this.getImage(), subfolder, "profile_images");
-//				obj.setProfileImagePath(this.getImage());
-			} catch (IOException e) {
-				
-			}
-			
+			obj.setTempImageFile(this.getImage());
 		}
 		
 		if (this.getEmailId() != null) {
