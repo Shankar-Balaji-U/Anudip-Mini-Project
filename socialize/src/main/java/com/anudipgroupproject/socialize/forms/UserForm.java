@@ -82,7 +82,10 @@ public class UserForm {
 	}
 
 	public MultipartFile getImage() {
-		return image;
+		if (this.image !=  null)
+			System.out.println("UserForm.getImage" + this.image);	
+		
+		return this.image;
 	}
 
 	public void setImage(MultipartFile image) {
@@ -95,7 +98,7 @@ public class UserForm {
 		if (this.getUsername() != null) {
 			obj.setUsername(this.getUsername());
 		}
-		
+
 		if (this.getPassword() != null) {
 			obj.setPassword(this.getPassword());
 		}
@@ -103,11 +106,11 @@ public class UserForm {
 		if (this.getDisplayname() != null) {
 			obj.setDisplayname(this.getDisplayname());
 		}
-		
-		if (!this.getImage().isEmpty()) {
+
+		if (this.getImage() != null) {
 			obj.setImage(convertMultipartFileToFile(this.getImage()));
 		}
-		
+
 		if (this.getEmailId() != null) {
 			obj.setEmailId(this.getEmailId());
 		}

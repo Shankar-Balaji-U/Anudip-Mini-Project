@@ -3,8 +3,9 @@ package com.anudipgroupproject.socialize.services;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+
 import com.anudipgroupproject.socialize.exceptions.ResourceNotFoundException;
-import com.anudipgroupproject.socialize.exceptions.RowAlreadyDeletedException;
+import com.anudipgroupproject.socialize.exceptions.ResourceAlreadyDeletedException;
 import com.anudipgroupproject.socialize.models.User;
 import com.anudipgroupproject.socialize.repositories.UserRepository;
 import com.anudipgroupproject.socialize.services.structure.UserServiceInterface;
@@ -29,7 +30,9 @@ public class UserService implements UserServiceInterface, FieldValueExists {
 	public User update(Long id, User updateUser) {
 		// we need to check whether Student with given id is exist in DB or not
     	User existingUser = this.get(id);
-		
+    	if (existingUser.getIsDeleted()) {
+			throw new ResourceAlreadyDeletedException(String.format("This user's id(%d) is already deleted", id));
+		}
     	existingUser.copy(updateUser);
     	
 		// save updated student to DB
@@ -39,37 +42,39 @@ public class UserService implements UserServiceInterface, FieldValueExists {
 	@Override
 	public User updateActiveStatus(Long id, boolean is_active) {
 		User existingUser = this.get(id);
+		if (existingUser.getIsDeleted()) {
+			throw new ResourceAlreadyDeletedException(String.format("This user's id(%d) is already deleted", id));
+		}
 		existingUser.setIsActive(is_active);
 		return this.objects.save(existingUser);
 	}
 	
 	@Override
 	public User get(Long id) {
-		return this.objects.findById(id)
-				.filter(user -> !user.getIsDelete())
+		User user = this.objects.findById(id)
 				.orElseThrow(() ->  new ResourceNotFoundException("User", "id", id));
+		return user;			
 	}
 	
 	@Override
 	public User get(String username) {
 		return this.objects.findByUsername(username)
-				.filter(user -> !user.getIsDelete())
 				.orElseThrow(() ->  new ResourceNotFoundException("User", "username", username));
 	}
 	
 	@Override
 	public List<User> all() {
-		return this.objects.findAll();
+		return this.objects.findAll().stream().filter(object -> !object.getIsDeleted()).toList();
 	}
 	
 	@Override
 	public User delete(Long id) {
 		// This will return a object or else it raise a exception
     	User user = this.get(id);
-    	if (user.getIsDelete()) {
-    		throw new RowAlreadyDeletedException(String.format("This user's id(%d) is already deleted", id));
-    	}
-    	user.setIsDelete(true);
+    	if (user.getIsDeleted()) {
+			throw new ResourceAlreadyDeletedException(String.format("This user's id(%d) is already deleted", id));
+		}
+    	user.setIsDeleted(true);
     	return this.objects.save(user);
 	}
 	
@@ -77,12 +82,16 @@ public class UserService implements UserServiceInterface, FieldValueExists {
 	public boolean isExists(String username) {
 		return this.objects.existsByUsername(username);
 	}
+
+	@Override
+	public boolean isExists(Long id, String username) {
+		return this.objects.existsByUsernameAndIdNot(username, id);
+	}
 	
 	@Override
 	public boolean isDeleted(Long id) {
-		return true;
-//		return this.objects.findById(id)
-//				.filter(user -> user.getIsDelete());
+		User user = this.get(id);
+		return user.getIsDeleted();
 	}
 	
 	@Override

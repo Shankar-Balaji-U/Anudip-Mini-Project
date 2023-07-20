@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotBlank;
 
 
 public class PostForm {
-	@NotBlank(message="User is required")
+	
     private User user;
 	
 	@NotBlank(message="Caption is required")

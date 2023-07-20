@@ -1,7 +1,12 @@
 package com.anudipgroupproject.socialize.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,91 +14,91 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.anudipgroupproject.socialize.exceptions.FieldError;
 import com.anudipgroupproject.socialize.exceptions.ResourceNotFoundException;
+import com.anudipgroupproject.socialize.forms.PostForm;
 import com.anudipgroupproject.socialize.models.Post;
 import com.anudipgroupproject.socialize.models.User;
 import com.anudipgroupproject.socialize.services.PostService;
 import com.anudipgroupproject.socialize.services.UserService;
 import com.anudipgroupproject.socialize.validators.MaxImageFileSizeValidator;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+
 
 @RestController
-@RequestMapping
-public class PostController {
-	private final PostService postService;
-	private final UserService userService;
+@RequestMapping("")
+public class PostController extends Common {
+	@Autowired
+	private PostService postService;
 	
 	@Autowired
-	public PostController(PostService postService, UserService userService) {
-		this.userService = userService;
-		this.postService = postService;
+	private UserService userService;
+	
+	@PostMapping(value="/{username}/p/new/", consumes={"*/*", MediaType.MULTIPART_FORM_DATA_VALUE})
+	public ResponseEntity<?> createPost(@ModelAttribute PostForm postData, @PathVariable String username) throws IOException {
+		User user = this.userService.get(username);
+		postData.setUser(user);
+		this.validateForm(postData);
+		
+		Post newCreatedPost = this.postService.create(postData.getEntity());
+		return new ResponseEntity<Post>(newCreatedPost, HttpStatus.CREATED);
 	}
 	
-	@PostMapping(value="/{username}/p/new/", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<String> createPost(
-			@RequestParam("caption") String caption, 
-			@RequestParam("image") MultipartFile imageFile,
+	@PutMapping(value="/{username}/p/update/{id}/", consumes={"*/*", MediaType.MULTIPART_FORM_DATA_VALUE})
+	public ResponseEntity<?> updatePost(
+			@ModelAttribute PostForm postData, 
+			@PathVariable Long id, 
 			@PathVariable String username) throws IOException {
 		
-		try {
-			MaxImageFileSizeValidator fileSizeValidator = new MaxImageFileSizeValidator(2);  // 2 MB
-			if (fileSizeValidator.isValid(imageFile)) {
-				// TODO: remaind the user to upload the file 
-			}
-		} catch (Exception e) {
-			// do nothing
-		}
+		User user = this.userService.get(username);
+		Post existingUserPost = user.getPosts().get(id);
 		
-		User user = this.userService.get(username);
-		Post obj = new Post(caption, imageFile, user);
-		Post post = this.postService.create(obj);
-		return new ResponseEntity<String>(post.toString(), HttpStatus.OK);
-	}
-	
-	@PutMapping(value="/{username}/p/edit/{id}", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Post> updatePost(
-			@PathVariable Long id,
-			@RequestParam("caption") String caption, 
-			@RequestParam("image") MultipartFile imageFile,
-			@PathVariable String username) throws IOException {
-		User user = this.userService.get(username);
-		List<Post> posts = user.getPosts();
-		Post userPost = null;
+		existingUserPost.copy(postData.getEntity());
+		this.validateForm(existingUserPost);
 		
-		for (Post post: posts) {
-			if (post.getId() == id) {
-				userPost = post;
-				break;
-			}
-		}
-		if (userPost != null) {
-			Post post = this.postService.update(id, new Post(caption, imageFile));
-			return new ResponseEntity<Post>(post, HttpStatus.OK);
-		} else {
-			throw new ResourceNotFoundException("Post", "id", id);
-		}
+		existingUserPost = this.postService.update(id, existingUserPost);
+		return new ResponseEntity<Post>(existingUserPost, HttpStatus.OK);
 	}
 	
-	@GetMapping("/{username}/p/all")
-	public ResponseEntity<List<Post>> getAllPostByUsername(@PathVariable String username) {
+	@GetMapping("/{username}/p/{id}/")
+	public ResponseEntity<?> getPostWithUsername(@PathVariable String username, @PathVariable Long id) {
 		User user = this.userService.get(username);
-		System.out.println();
-//		List<Post> posts = user.getPosts(); //user.getPosts();
-		return new ResponseEntity<List<Post>>(user.getPosts(), HttpStatus.OK);
+		
+		Post post = this.postService.get(id, user);
+		return new ResponseEntity<Post>(post, HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/p/delete/{id}")
-	public ResponseEntity<String> getPostByUsername(@PathVariable Long id) {
-		this.postService.delete(id);
-		return new ResponseEntity<String>("Object is deleted", HttpStatus.OK);
+	@GetMapping("/p/all/")
+	public ResponseEntity<?> getAllPost() {
+		List<Post> posts = this.postService.all();
+		return new ResponseEntity<List<Post>>(posts, HttpStatus.OK);
 	}
 	
+	@GetMapping("/{username}/p/all/")
+	public ResponseEntity<?> getAllPostByUsername(@PathVariable String username) {
+		User user = this.userService.get(username);
+		return new ResponseEntity<Collection<Post>>(user.getPosts().values(), HttpStatus.OK);
+	}
+	
+	@DeleteMapping("/{username}/p/delete/{id}/")
+	public ResponseEntity<?> deletePostWithUsername(@PathVariable String username, @PathVariable Long id) {
+		User user = this.userService.get(username);
+		Post post = this.postService.delete(id, user);
+		
+		return new ResponseEntity<Post>(post, HttpStatus.OK);
+	}
 }

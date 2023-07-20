@@ -41,10 +41,12 @@ public class Post {
 	@Column(name="image", nullable=false)
 	private File image;
 	
+	@Column(name="is_deleted", columnDefinition="BIT(1) DEFAULT FALSE")
+	private boolean is_deleted;
+	
 	@Column(name="created_on")
 	private Date created_on;
-
-
+	
 	@PrePersist
     protected void onCreate() {
 		this.created_on = new Date();
@@ -77,8 +79,27 @@ public class Post {
 	public void setImage(File image) {
 		this.image = image;
 	}
+	
+	public boolean getIsDeleted() {
+		return is_deleted;
+	}
+	
+	public void setIsDeleted(boolean is_deleted) {
+		this.is_deleted = is_deleted;
+	}
 
 	public Date getCreatedOn() {
 		return this.created_on;
+	}
+
+	public void copy(Post post) {
+		if (post.getUser() != null)
+			this.setUser(post.getUser());
+
+		if (post.getImage() != null)
+			this.setImage(post.getImage());
+		
+		if (post.getCaption() != null)
+			this.setCaption(post.getCaption());
 	}
 }

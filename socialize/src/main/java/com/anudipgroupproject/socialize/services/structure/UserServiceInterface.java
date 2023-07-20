@@ -13,5 +13,6 @@ public interface UserServiceInterface {
 	public List<User> all();
 	public User delete(Long id);
 	public boolean isExists(String username);
+	public boolean isExists(Long id, String username);
 	public boolean isDeleted(Long id);
 }

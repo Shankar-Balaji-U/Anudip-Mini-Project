@@ -1,10 +1,10 @@
 package com.anudipgroupproject.socialize.exceptions;
 
-public class RowDeletedException extends RuntimeException {
+public class ResourceAlreadyDeletedException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public RowDeletedException(String message) {
+	public ResourceAlreadyDeletedException(String message) {
         super(message);
     }
 }

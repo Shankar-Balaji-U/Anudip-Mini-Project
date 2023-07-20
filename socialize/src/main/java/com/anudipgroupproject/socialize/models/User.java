@@ -2,7 +2,9 @@ package com.anudipgroupproject.socialize.models;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
@@ -22,6 +24,10 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
 import com.anudipgroupproject.socialize.models.fields.MediaFile;
+//import com.anudipgroupproject.socialize.utils.DataUrlSerializer;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+//import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 
 @Entity
@@ -37,6 +43,7 @@ public class User {
 	@Column(name="displayname")
 	private String displayname;
 	
+	@JsonIgnore
 	@Column(name="password", length=25, nullable=false)
 	private String password;
 	
@@ -167,16 +174,20 @@ public class User {
 		this.is_active = is_active;
 	}
 	
-	public boolean getIsDelete() {
+	public boolean getIsDeleted() {
 		return is_deleted;
 	}
 	
-	public void setIsDelete(boolean is_deleted) {
+	public void setIsDeleted(boolean is_deleted) {
 		this.is_deleted = is_deleted;
 	}
 	
-	public List<Post> getPosts() {
-		return this.posts;
+	public Map<Long, Post> getPosts() {
+		Map<Long, Post> postMap = new HashMap<>();
+		for (Post post: this.posts) {
+			postMap.put(post.getId(), post);
+		}
+		return postMap;
 	}
 	
 	@Override
@@ -192,6 +203,7 @@ public class User {
 		if (user.getImage() != null) this.setImage(user.getImage());
 	}
 	
+	@JsonIgnore
 	public UserForm getForm() {
 		UserForm form = new UserForm();
 		form.setUsername(this.getUsername());
