@@ -1,7 +1,10 @@
 package com.anudipgroupproject.socialize.utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,4 +49,22 @@ public class MediaManager {
             throw new IOException("File does not exist: " + filePath);
         }
     }
+	
+	public static File convertMultipartFileToFile(MultipartFile multipartFile) throws IOException {
+	    File file = new File(multipartFile.getOriginalFilename());
+	    
+	    try (InputStream inputStream = multipartFile.getInputStream();
+	         OutputStream outputStream = new FileOutputStream(file)) {
+	        int bytesRead;
+	        byte[] buffer = new byte[4096];
+	        
+	        while ((bytesRead = inputStream.read(buffer)) != -1) {
+	            outputStream.write(buffer, 0, bytesRead);
+	        }
+	    } catch (IOException e) {
+	    	
+	    }
+	    
+	    return file;
+	}
 } 
