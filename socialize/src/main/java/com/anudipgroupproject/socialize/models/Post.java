@@ -26,31 +26,31 @@ import jakarta.persistence.Table;
 @Table(name = "posts")
 public class Post {
 	@Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
 
 	@ManyToOne(fetch=FetchType.LAZY)  			// @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name="user", nullable=false, referencedColumnName="id")
+	@JoinColumn(name="user", nullable=false, referencedColumnName="id")
 	@JsonIgnore
-    private User user;
-	
+	private User user;
+
 	@Column(name="caption")
 	private String caption;
-	
+
 	@Type(value=MediaFile.class, parameters={ @Parameter(name="folderName", value="post_images") })
 	@Column(name="image", nullable=false)
 	private File image;
-	
+
 	@Column(name="is_deleted", columnDefinition="BIT(1) DEFAULT FALSE")
 	private boolean is_deleted;
-	
+
 	@Column(name="created_on")
 	private Date created_on;
-	
+
 	@PrePersist
-    protected void onCreate() {
+	protected void onCreate() {
 		this.created_on = new Date();
-    }
+	}
 
 	public Long getId() {
 		return this.id;
@@ -79,11 +79,11 @@ public class Post {
 	public void setImage(File image) {
 		this.image = image;
 	}
-	
+
 	public boolean getIsDeleted() {
 		return is_deleted;
 	}
-	
+
 	public void setIsDeleted(boolean is_deleted) {
 		this.is_deleted = is_deleted;
 	}
@@ -98,7 +98,7 @@ public class Post {
 
 		if (post.getImage() != null)
 			this.setImage(post.getImage());
-		
+
 		if (post.getCaption() != null)
 			this.setCaption(post.getCaption());
 	}

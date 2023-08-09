@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.anudipgroupproject.socialize.exceptions.FieldError;
 import com.anudipgroupproject.socialize.forms.CheckUserForm;
-import com.anudipgroupproject.socialize.forms.UserForm;
+import com.anudipgroupproject.socialize.forms.UserCreationForm;
+import com.anudipgroupproject.socialize.forms.UserUpdationForm;
 import com.anudipgroupproject.socialize.models.User;
 import com.anudipgroupproject.socialize.services.UserService;
 
@@ -33,22 +35,46 @@ public class UserController extends Common {
 	private UserService userService;
 
 	@PostMapping(value="/create-profile/", consumes={"*/*", MediaType.MULTIPART_FORM_DATA_VALUE})
-	public ResponseEntity<?> createUser(@ModelAttribute UserForm userData) throws IOException {
+	public ResponseEntity<?> createUser(@ModelAttribute UserCreationForm userData) throws IOException {
+		this.cleanErrors();
+
+		boolean isExist = this.userService.isExists(userData.getUsername());
+
+		if (isExist)
+			this.addError(new FieldError("username", "Username should be unique."));
+
 		this.validateForm(userData);
 		
 		User newCreatedUser = this.userService.create(userData.getEntity());
-		return new ResponseEntity<String>(String.format("With '%s' account has been registered.", newCreatedUser.getUsername()), HttpStatus.CREATED);
+		return new ResponseEntity<User>(newCreatedUser, HttpStatus.CREATED);
 	}
-	
+
 	@PutMapping(value="/update-profile/{id}/", consumes={"*/*", MediaType.MULTIPART_FORM_DATA_VALUE})
-	public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody UserForm userData) throws IOException {
+	public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody UserUpdationForm userData) throws IOException {
+		this.cleanErrors();
+		
 		// Retrieve the existing User object from the data source
 		User existingUser = this.userService.get(id);
 		existingUser.copy(userData.getEntity());
 
 		// Check for validation errors
 		this.validateForm(userData);
+
+		User updatedUser = this.userService.update(id, existingUser);
+		return new ResponseEntity<User>(updatedUser, HttpStatus.OK);
+	}
+	
+	@PutMapping(value="/update-password/{id}/", consumes={"*/*", MediaType.MULTIPART_FORM_DATA_VALUE})
+	public ResponseEntity<?> updateUserPassword(@PathVariable long id, @RequestBody String password) {	
+		this.cleanErrors();
 		
+		// Retrieve the existing User object from the data source
+		User existingUser = this.userService.get(id);
+		existingUser.setPassword(password);
+
+		// Check for validation errors
+		this.validateForm(existingUser);
+
 		User updatedUser = this.userService.update(id, existingUser);
 		return new ResponseEntity<User>(updatedUser, HttpStatus.OK);
 	}
@@ -70,7 +96,7 @@ public class UserController extends Common {
 		User existingUser = this.userService.get(username);
 		return new ResponseEntity<User>(existingUser, HttpStatus.OK);
 	}
-	
+
 	@PostMapping("isexist-username/")
 	public boolean checkExistingUsername(@RequestBody CheckUserForm checkForm) {
 		if (checkForm.getId() != null) 
@@ -80,8 +106,7 @@ public class UserController extends Common {
 
 	@GetMapping("/get/all/")
 	public ResponseEntity<List<User>> allUser() {
-		List<User> existingUsers = this.userService.all();
-		return new ResponseEntity<List<User>>(existingUsers, HttpStatus.OK);
+		return new ResponseEntity<List<User>>(this.userService.all(), HttpStatus.OK);
 	}
 
 	@DeleteMapping("/delete-profile/{id}/")

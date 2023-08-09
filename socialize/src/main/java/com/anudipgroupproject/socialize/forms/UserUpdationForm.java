@@ -7,24 +7,22 @@ import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.anudipgroupproject.socialize.models.User;
+import com.anudipgroupproject.socialize.services.UserService;
 import com.anudipgroupproject.socialize.validators.annotations.FileSize;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.anudipgroupproject.socialize.validators.annotations.Unique;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
-public class UserCreationForm {
+
+public class UserUpdationForm {
 	
 	@NotBlank(message="Username is required")
+	@Unique(service=UserService.class, fieldName="username", message="Username should be unique.")
 	private String username;
 
 	private String displayname;
-
-	@NotBlank(message="Password is required")
-	@Size(min=8, message="Password must be at least 8 characters long")
-	private String password;
 
 	@Pattern(regexp="\\d{10}", message="Mobile number must be a 10-digit number")
 	private String mobile;
@@ -32,11 +30,9 @@ public class UserCreationForm {
 	@NotBlank(message="Email is required")
 	@Email(message="Invalid email format")
 	private String email;
-	
-//	@JsonInclude(JsonInclude.Include.NON_NULL)
-//	@FileSize(max=2097152, message="Image size must be less than 2MB")
-//	private MultipartFile image;
 
+	@FileSize(max=2097152, message="Image size must be less than 2MB")
+	private MultipartFile image;
 
 	public String getUsername() {
 		return username;
@@ -52,14 +48,6 @@ public class UserCreationForm {
 
 	public void setDisplayname(String displayname) {
 		this.displayname = displayname;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public String getMobile() {
@@ -78,15 +66,16 @@ public class UserCreationForm {
 		this.email = email;
 	}
 
-//	public MultipartFile getImage() {
-//		if (this.image !=  null)
-//			System.out.println("UserForm.getImage" + this.image);
-//		return this.image;
-//	}
+	public MultipartFile getImage() {
+		if (this.image !=  null)
+			System.out.println("UserForm.getImage" + this.image);	
 
-//	public void setImage(MultipartFile image) {
-//		this.image = image;
-//	}
+		return this.image;
+	}
+
+	public void setImage(MultipartFile image) {
+		this.image = image;
+	}
 
 	public User getEntity() throws IOException {
 		User obj = new User();
@@ -95,17 +84,13 @@ public class UserCreationForm {
 			obj.setUsername(this.getUsername());
 		}
 
-		if (this.getPassword() != null) {
-			obj.setPassword(this.getPassword());
-		}
-
 		if (this.getDisplayname() != null) {
 			obj.setDisplayname(this.getDisplayname());
 		}
 
-//		if (this.getImage() != null) {
-//			obj.setImage(convertMultipartFileToFile(this.getImage()));
-//		}
+		if (this.getImage() != null) {
+			obj.setImage(convertMultipartFileToFile(this.getImage()));
+		}
 
 		if (this.getEmail() != null) {
 			obj.setEmail(this.getEmail());

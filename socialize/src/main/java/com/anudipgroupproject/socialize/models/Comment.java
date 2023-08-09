@@ -10,18 +10,18 @@ import jakarta.persistence.ManyToOne;
 
 public class Comment {
 	@Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Long id;
-	
+	@GeneratedValue(strategy= GenerationType.IDENTITY)
+	private Long id;
+
 	@ManyToOne
-    @JoinColumn(name="post", referencedColumnName="id")
+	@JoinColumn(name="post", referencedColumnName="id")
 	private Post post;
-	
+
 	@ManyToMany
 	@JoinColumn(name="user", referencedColumnName="id")
 	private User user;
 
-    @Column(name="content", length=500)
+	@Column(name="content", length=500)
 	private String content;
 
 	public Post getPost() {

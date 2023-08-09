@@ -19,6 +19,8 @@ public class UniqueValidator implements ConstraintValidator<Unique, Object> {
 	
 	@Override
     public void initialize(Unique constraintAnnotation) {
+
+		System.out.println(this.getClass().getAnnotatedInterfaces());
 		Class<? extends FieldValueExists> clazz = constraintAnnotation.service();
 		String serviceQualifier = constraintAnnotation.serviceQualifier();
 		this.fieldName = constraintAnnotation.fieldName();

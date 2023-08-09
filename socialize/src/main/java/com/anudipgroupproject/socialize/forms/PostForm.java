@@ -15,15 +15,15 @@ import jakarta.validation.constraints.NotBlank;
 
 
 public class PostForm {
-	
-    private User user;
-	
+
+	private User user;
+
 	@NotBlank(message="Caption is required")
 	private String caption;
-	
+
 	@FileSize(max=2097152, message="Image size must be less than 2MB")
 	private MultipartFile image;
-	
+
 	public User getUser() {
 		return user;
 	}
@@ -43,22 +43,22 @@ public class PostForm {
 	public MultipartFile getImage() {
 		return this.image;
 	}
-	
+
 	public void setImage(MultipartFile image) {
 		this.image = image;
 	}
-	
+
 	public Post getEntity() throws IOException {
 		Post obj = new Post();
-	
+
 		if (this.getUser() != null) {
 			obj.setUser(this.getUser());
 		}
-		
+
 		if (this.getCaption() != null) {
 			obj.setCaption(this.getCaption());
 		}
-		
+
 		if (!this.getImage().isEmpty()) {
 			obj.setImage(convertMultipartFileToFile(this.getImage()));
 		}
